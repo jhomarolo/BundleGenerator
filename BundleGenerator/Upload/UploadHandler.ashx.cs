@@ -127,6 +127,14 @@ namespace BundleGenerator.Upload
         // Upload entire file
         private void UploadWholeFile(HttpContext context, List<FilesStatus> statuses)
         {
+            StringBuilder stbCSS = new StringBuilder();
+            StringBuilder stbJS = new StringBuilder();
+            var ext = string.Empty;
+            string guideCSS = string.Empty;
+            string guideJS = string.Empty;
+            int aptcss = 0;
+            int aptjs = 0;
+
             for (int i = 0; i < context.Request.Files.Count; i++)
             {
                 string filecomp = string.Empty;
@@ -138,9 +146,54 @@ namespace BundleGenerator.Upload
                 ECMAScriptPacker p = new ECMAScriptPacker(0, true, true);
                 filecomp = p.Pack(ByteToString(filebyte)).Replace("\n", "\r\n");
                 System.IO.File.WriteAllText(fullPath, filecomp);
-                string fullName = Path.GetFileName(guid +"$"+file.FileName);
+                string fullName = Path.GetFileName(guid + "$" + file.FileName);
                 statuses.Add(new FilesStatus(fullName, filecomp.Length, fullPath));
+                ext = Path.GetExtension(fullPath);
+                if (IsJS(ext))
+                {
+                    stbJS.Append(filecomp);
+                    if (aptjs == 0)
+                    {
+                        aptjs = 1;
+                        guideJS = guid;
+                    }
+                }
+                else if (IsCSS(ext))
+                {
+                    stbCSS.Append(filecomp);
+                    if (aptcss == 0)
+                    {
+                        aptcss = 1;
+                        guideCSS = guid;
+                    }
+                }
             }
+            if (aptjs != 0)
+            {
+                string pathjs = StorageRoot + guideJS + "bundleJS.js";
+                if (!File.Exists(pathjs))
+                {
+                    File.Create(pathjs).Dispose();
+                }
+                
+                System.IO.File.WriteAllText(pathjs, stbJS.ToString());
+            }
+            if (aptcss != 0)
+            {
+                string pathcss = StorageRoot + guideCSS + "bundleCSS.js";
+                File.Create(pathcss).Dispose();
+                System.IO.File.WriteAllText(pathcss, stbCSS.ToString());
+            }
+           
+        }
+
+        private bool IsJS(string ext)
+        {
+            return ext == ".js";
+        }
+        private bool IsCSS(string ext)
+        {
+            return ext == ".css";
         }
 
         public static string ByteToString(byte[] bytes)

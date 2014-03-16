@@ -18,6 +18,10 @@ namespace BundleGenerator.Upload
         public string delete_url { get; set; }
         public string delete_type { get; set; }
         public string error { get; set; }
+        public bool hasCSS { get; set; }
+        public bool hasJS { get; set; }
+        public string realnameJS { get; set; }
+        public string realnameCSS { get; set; }
 
         public FilesStatus() { }
 
